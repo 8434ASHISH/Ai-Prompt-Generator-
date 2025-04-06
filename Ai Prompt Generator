@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI प्रॉम्प्ट जनरेटर</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', 'Noto Sans Devanagari', sans-serif;
+      background: #f8f9fa;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 25px;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: white;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    }
+    select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    select:focus, textarea:focus {
+      border-color: #2575fc;
+      outline: none;
+    }
+    button {
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    button.generate-btn {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+      color: white;
+      border: none;
+      padding: 14px 30px;
+      font-size: 16px;
+      border-radius: 8px;
+      width: 100%;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    button.generate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255,107,107,0.3);
+    }
+    .output-section {
+      margin-top: 25px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 2px solid #e0e0e0;
+      position: relative;
+    }
+    .copy-btn {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      background: #2575fc;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+    }
+    .copy-btn:hover {
+      background: #1a5dd8;
+    }
+    .error-msg {
+      color: #dc3545;
+      margin: -15px 0 15px;
+      display: none;
+    }
+    .voice-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      margin-left: 10px;
+    }
+    .voice-btn:hover {
+      background: #218838;
+    }
+    .recording {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { background-color: #dc3545; }
+      50% { background-color: #ff6b6b; }
+      100% { background-color: #dc3545; }
+    }
+    @media (max-width: 768px) {
+      .container {
+        margin: 15px;
+        padding: 20px;
+      }
+      .header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 id="appTitle">AI प्रॉम्प्ट जनरेटर</h1>
+    <div class="toggle-buttons">
+      <button onclick="toggleLanguage()" id="langBtn">EN/HI</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="form-group">
+      <label id="platformLabel">प्लेटफॉर्म चुनें</label>
+      <select id="platform">
+        <option>Instagram</option>
+        <option>YouTube</option>
+        <option>Freelance</option>
+        <option>Blog</option>
+        <option>Business</option>
+        <option id="imageOption">Image Prompt</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label id="promptLabel">प्रॉम्प्ट प्रकार</label>
+      <select id="promptType">
+        <option>Caption</option>
+        <option>Hashtags</option>
+        <option>Ad Copy</option>
+        <option>Content Idea</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label id="inputLabel">विषय विवरण</label>
+      <div style="display: flex; align-items: center;">
+        <textarea 
+          id="userInput" 
+          rows="4"
+          placeholder="उदाहरण: फिटनेस पर आधारित Instagram पोस्ट के लिए कैप्शन..."
+        ></textarea>
+        <button class="voice-btn" id="voiceBtn" title="वॉइस इनपुट">🎤</button>
+      </div>
+      <div class="error-msg" id="errorMsg">कृपया विवरण दर्ज करें!</div>
+    </div>
+
+    <button class="generate-btn" onclick="generatePrompt()" id="generateBtn">प्रॉम्प्ट बनाएं</button>
+
+    <div class="output-section">
+      <button class="copy-btn" onclick="copyPrompt()" id="copyBtn">कॉपी करें</button>
+      <div id="outputBox">यहाँ आपका जनरेटेड प्रॉम्प्ट दिखाई देगा...</div>
+    </div>
+  </div>
+
+  <script>
+    // भाषा टॉगल फंक्शन
+    let currentLang = 'hi';
+    const translations = {
+      hi: {
+        title: "AI प्रॉम्प्ट जनरेटर",
+        platformLabel: "प्लेटफॉर्म चुनें",
+        promptLabel: "प्रॉम्प्ट प्रकार",
+        inputLabel: "विषय विवरण",
+        inputPlaceholder: "उदाहरण: फिटनेस पर आधारित Instagram पोस्ट के लिए कैप्शन...",
+        generateBtn: "प्रॉम्प्ट बनाएं",
+        copyBtn: "कॉपी करें",
+        errorMsg: "कृपया विवरण दर्ज करें!",
+        outputPlaceholder: "यहाँ आपका जनरेटेड प्रॉम्प्ट दिखाई देगा...",
+        langBtn: "EN/HI"
+      },
+      en: {
+        title: "AI Prompt Generator",
+        platformLabel: "Select Platform",
+        promptLabel: "Prompt Type",
+        inputLabel: "Topic Description",
+        inputPlaceholder: "Example: Caption for fitness-based Instagram post...",
+        generateBtn: "Generate Prompt",
+        copyBtn: "Copy",
+        errorMsg: "Please enter description!",
+        outputPlaceholder: "Your generated prompt will appear here...",
+        langBtn: "HI/EN"
+      }
+    };
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'hi' ? 'en' : 'hi';
+      updateLanguage();
+    }
+
+    function updateLanguage() {
+      const langData = translations[currentLang];
+      document.getElementById('appTitle').textContent = langData.title;
+      document.getElementById('platformLabel').textContent = langData.platformLabel;
+      document.getElementById('promptLabel').textContent = langData.promptLabel;
+      document.getElementById('inputLabel').textContent = langData.inputLabel;
+      document.getElementById('userInput').placeholder = langData.inputPlaceholder;
+      document.getElementById('generateBtn').textContent = langData.generateBtn;
+      document.getElementById('copyBtn').textContent = langData.copyBtn;
+      document.getElementById('errorMsg').textContent = langData.errorMsg;
+      if(document.getElementById('outputBox').innerHTML.includes("दिखाई देगा") || 
+         document.getElementById('outputBox').innerHTML.includes("appear here")) {
+        document.getElementById('outputBox').textContent = langData.outputPlaceholder;
+      }
+      document.getElementById('langBtn').textContent = langData.langBtn;
+    }
+
+    // वॉइस टू टेक्स्ट फंक्शन
+    const voiceBtn = document.getElementById('voiceBtn');
+    let recognition;
+
+    if ('webkitSpeechRecognition' in window) {
+      recognition = new webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = currentLang === 'hi' ? 'hi-IN' : 'en-US';
+
+      voiceBtn.addEventListener('click', () => {
+        if (voiceBtn.classList.contains('recording')) {
+          recognition.stop();
+          voiceBtn.classList.remove('recording');
+        } else {
+          recognition.start();
+          voiceBtn.classList.add('recording');
+        }
+      });
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('userInput').value += ' ' + transcript;
+        voiceBtn.classList.remove('recording');
+      };
+
+      recognition.onerror = (event) => {
+        voiceBtn.classList.remove('recording');
+      };
+    } else {
+      voiceBtn.disabled = true;
+      voiceBtn.title = "Voice input not supported in your browser";
+    }
+
+    // प्रॉम्प्ट जनरेशन फंक्शन
+    function generatePrompt() {
+      const platform = document.getElementById("platform").value;
+      const type = document.getElementById("promptType").value;
+      const input = document.getElementById("userInput").value.trim();
+      const errorMsg = document.getElementById("errorMsg");
+
+      if (!input) {
+        errorMsg.style.display = 'block';
+        return;
+      }
+      errorMsg.style.display = 'none';
+
+      let prompt;
+      
+      if (platform === "Image Prompt") {
+        prompt = `
+          <strong>Image Prompt for:</strong> ${type}<br>
+          <strong>Description:</strong> ${input}<br><br>
+          <span style="color: #2575fc;">✅ Generated Image Prompt:</span><br>
+          "A high-quality ${type.toLowerCase()} image showing ${input}. 
+          The image should be visually striking with vibrant colors, 
+          professional composition, and realistic details."
+        `;
+      } else {
+        prompt = `
+          <strong>Platform:</strong> ${platform}<br>
+          <strong>Type:</strong> ${type}<br>
+          <strong>Description:</strong> ${input}<br><br>
+          <span style="color: #2575fc;">✅ Generated Prompt:</span><br>
+          "Create a creative ${type.toLowerCase()} for "${input}" that engages ${platform} audience. 
+          Keep the tone professional yet friendly, and include relevant hashtags and CTAs."
+        `;
+      }
+
+      document.getElementById("outputBox").innerHTML = prompt;
+    }
+
+    // कॉपी फंक्शन
+    function copyPrompt() {
+      const text = document.getElementById("outputBox").innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        alert(currentLang === 'hi' ? "प्रॉम्प्ट कॉपी हो गया!" : "Prompt copied!");
+      });
+    }
+  </script>
+</body>
+</html>
