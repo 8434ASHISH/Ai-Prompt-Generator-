@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt Generator - About Us</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2575fc; }
+    </style>
+</head>
+<body>
+    <h1>About AI Prompt Generator</h1>
+    
+    <p>A free tool designed to help content creators with:</p>
+    <ul>
+        <li>Instagram/Youtube captions</li>
+        <li>Hashtag suggestions</li>
+        <li>Ad copy generation</li>
+        <li>Content ideas</li>
+    </ul>
+
+    <h2>Key Features</h2>
+    <ul>
+        <li>No login required</li>
+        <li>Hindi & English support</li>
+        <li>100% client-side processing</li>
+    </ul>
+</body>
+</html>
